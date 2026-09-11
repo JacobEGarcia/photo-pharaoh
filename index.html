@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Pharaoh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#161310;--panel:#1f1a15;--stone:#262019;--line:#38301f;--ink:#efe6cf;--dim:#a2937a;--faint:#6f6450;--gold:#d3a83f;--gold-soft:#b8933a;--sand:#e7d5a4}
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:'Karla',system-ui,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(1000px 420px at 50% -8%,rgba(211,168,63,.07),transparent 60%)}
+  header { text-align:center; padding:34px 16px 4px; }
+  h1 { font-family:'Marcellus',serif; font-weight:400; letter-spacing:.18em; font-size:clamp(24px,4.5vw,34px); color:var(--ink); text-transform:uppercase; }
+  h1 span{color:var(--gold)}
+  .frieze{display:flex;justify-content:center;gap:14px;margin-top:12px;color:var(--faint)}
+  .sub { color:var(--dim); font-size:11px; letter-spacing:.24em; margin-top:10px; text-transform:uppercase; font-weight:700}
+  #hud { display:flex; gap:0; margin:20px 0 16px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--panel)}
+  #hud > span{padding:10px 20px;font-size:10.5px;letter-spacing:1.8px;color:var(--faint);text-transform:uppercase;font-weight:700;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:3px}
+  #hud > span:last-child{border-right:none}
+  #hud .v { color:var(--gold); font-weight:700; font-size:17px; letter-spacing:0; font-variant-numeric:tabular-nums}
+  #board { display:grid; gap:10px; width:min(520px,92vw); margin:0 auto 34px; }
+  .card { aspect-ratio:1; perspective:700px; cursor:pointer; background:none; border:none; padding:0; }
+  .card .inner { position:relative; width:100%; height:100%; transition:transform .4s cubic-bezier(.3,.9,.4,1); transform-style:preserve-3d; }
+  .card.flip .inner { transform:rotateY(180deg); }
+  .face { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; border-radius:10px; backface-visibility:hidden; }
+  .back { background:linear-gradient(150deg,#2a231b,#1b1611); border:1px solid var(--line); color:#54482f; }
+  .back svg{width:38%;height:38%}
+  .front { background:linear-gradient(150deg,#efe0b2,#dfc587); border:1px solid #c3a45a; transform:rotateY(180deg); color:#4a3512; }
+  .front svg{width:52%;height:52%}
+  .card.matched .front { background:linear-gradient(150deg,#e3c15f,#c9a23e); border-color:var(--gold); color:#3d2a08; }
+  .card.matched { cursor:default; }
+  .overlay { position:fixed; inset:0; background:rgba(14,11,8,.95); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; z-index:10; padding:24px; }
+  .hidden { display:none !important; }
+  .overlay h1 { margin-bottom:14px; }
+  .overlay p { max-width:460px; line-height:1.9; color:var(--dim); font-size:14.5px; margin-bottom:28px; }
+  .overlay b { color:var(--gold); }
+  .btn { font-family:'Karla',sans-serif; font-weight:700; font-size:12px; letter-spacing:.22em; text-transform:uppercase; padding:14px 36px; background:transparent; color:var(--gold); border:1.5px solid var(--gold); border-radius:8px; cursor:pointer; transition:background .15s,color .15s; }
+  .btn:hover { background:var(--gold); color:#1c1508; }
+  footer{color:var(--faint);font-size:10.5px;letter-spacing:1.8px;text-transform:uppercase;padding-bottom:30px;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>Photo <span>Pharaoh</span></h1>
+  <div class="frieze" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="7" r="4"/><path d="M12 11v10M6 13h12"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 5 21 19H3z"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 5 21 19H3z"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="7" r="4"/><path d="M12 11v10M6 13h12"/></svg>
+  </div>
+  <div class="sub">Match the relics &middot; fewer moves, more glory</div>
+</header>
+<div id="hud">
+  <span>Moves <span class="v" id="moves">0</span></span>
+  <span>Matched <span class="v" id="pairs">0</span>/8</span>
+  <span>Best <span class="v" id="best">-</span></span>
+</div>
+<div id="board"></div>
+<footer>Gallery IV &middot; the funerary wing</footer>
+
+<div class="overlay" id="winScreen">
+  <h1>The Tomb <span>Is Yours</span></h1>
+  <p id="winText"></p>
+  <button class="btn" id="againBtn">Raid again</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+const IC={
+ankh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="7" r="4"/><path d="M12 11v10M6 13h12"/></svg>',
+eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11c3-4.5 6.5-6.5 10-6.5S19 6.5 22 11c-3 4.5-6.5 6.5-10 6.5S5 15.5 2 11z"/><circle cx="12" cy="11" r="2.6"/><path d="M3 5.5C7 3 11 2.5 15 3.5M12 17.5V21M15.5 16.5 18 20"/></svg>',
+scarab:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="13.5" rx="5" ry="6"/><circle cx="12" cy="5.5" r="2.2"/><path d="M12 7.5v12M7 10 3.5 8M7 13.5H3M7 17l-3 3M17 10l3.5-2M17 13.5H21M17 17l3 3"/></svg>',
+lotus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c2.2 3 2.2 6.5 0 9.5-2.2-3-2.2-6.5 0-9.5z"/><path d="M5.5 6.5c3.2.8 5.5 3.5 6.5 6.5-3.2-.2-6-2.5-6.5-6.5zM18.5 6.5c-3.2.8-5.5 3.5-6.5 6.5 3.2-.2 6-2.5 6.5-6.5z"/><path d="M3.5 16c2.4 3 5.4 4.5 8.5 4.5s6.1-1.5 8.5-4.5"/></svg>',
+pyramid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 4 22 20H2z"/><path d="M12 4l4.5 16M7.5 12h9" stroke-width="1.2"/></svg>',
+cat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 21v-8.5c0-3.8 1.6-5.5 3.5-5.5s3.5 1.7 3.5 5.5V21"/><path d="M8.5 9 6.5 3.5 11 6.2M15.5 9l2-5.5L13 6.2"/><path d="M15.5 21c3.2-.8 4.5-3.5 4-6.5"/><path d="M10 12h.01M14 12h.01"/></svg>',
+urn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M8.5 7.5c0-2 1.5-3 3.5-3s3.5 1 3.5 3c1.8 1 3 2.8 3 5v3.5c0 2.2-2 3.5-6.5 3.5s-6.5-1.3-6.5-3.5V12.5c0-2.2 1.2-4 3-5z"/><path d="M8.5 7.5h7M7 12h10" stroke-width="1.2"/></svg>',
+sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5V5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3 7 7M17 17l1.7 1.7M18.7 5.3 17 7M7 17l-1.7 1.7"/></svg>'
+};
+const NAMES=['ankh','eye','scarab','lotus','pyramid','cat','urn','sun'];
+const BACK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="7" r="4"/><path d="M12 11v10M6 13h12"/></svg>';
+let deck=[], first=null, lock=false, moves=0, matched=0;
+let best=+(localStorage.getItem('pharaoh-best')||0);
+const board=document.getElementById('board');
+
+let AC=null;
+function tone(f,type,a,p,d){ try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  const o=AC.createOscillator(),g=AC.createGain(); o.type=type;o.frequency.value=f;o.connect(g);g.connect(AC.destination);
+  const t=AC.currentTime; g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(p,t+a); g.gain.exponentialRampToValueAtTime(.0001,t+a+d); o.start(t); o.stop(t+a+d+.05);}catch(e){} }
+function flipSnd(){ tone(440,'triangle',.01,.1,.08); }
+function matchSnd(){ tone(660,'triangle',.01,.14,.15); setTimeout(()=>tone(990,'triangle',.01,.14,.25),90); }
+function noSnd(){ tone(220,'sine',.01,.1,.2); }
+function winSnd(){ [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,'triangle',.02,.16,.4),i*140)); }
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function start(){
+  deck=shuffle([...NAMES,...NAMES].map((g,i)=>({g, id:i})));
+  first=null; lock=false; moves=0; matched=0;
+  document.getElementById('winScreen').classList.add('hidden');
+  board.innerHTML='';
+  board.style.gridTemplateColumns='repeat(4,1fr)';
+  deck.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='card'; b.setAttribute('aria-label','card');
+    b.innerHTML='<div class="inner"><div class="face back">'+BACK+'</div><div class="face front">'+IC[c.g]+'</div></div>';
+    b.addEventListener('click',()=>flip(b,c));
+    board.appendChild(b);
+  });
+  hud();
+}
+function hud(){
+  document.getElementById('moves').textContent=moves;
+  document.getElementById('pairs').textContent=matched;
+  document.getElementById('best').textContent=best||'-';
+}
+function flip(el,card){
+  if(lock || el.classList.contains('flip') || el.classList.contains('matched')) return;
+  flipSnd();
+  el.classList.add('flip');
+  if(!first){ first={el,card}; return; }
+  moves++;
+  if(first.card.g===card.g){
+    el.classList.add('matched'); first.el.classList.add('matched');
+    matched++; matchSnd(); first=null;
+    if(matched===NAMES.length){
+      setTimeout(()=>{
+        if(!best||moves<best){ best=moves; localStorage.setItem('pharaoh-best',best); }
+        document.getElementById('winText').innerHTML='All 8 relics matched in <b>'+moves+' moves</b>.<br>'+(moves<=12?'A perfect raid. The pharaohs applaud.':moves<=20?'A respectable plunder.':'Messy, but the gold spends the same.');
+        document.getElementById('winScreen').classList.remove('hidden');
+        winSnd(); hud();
+      },600);
+    }
+  } else {
+    noSnd();
+    const f=first; first=null; lock=true;
+    setTimeout(()=>{ f.el.classList.remove('flip'); el.classList.remove('flip'); lock=false; }, 750);
+  }
+  hud();
+}
+document.getElementById('againBtn').addEventListener('click',start);
+start();
+})();
+</script>
+</body>
+</html>
